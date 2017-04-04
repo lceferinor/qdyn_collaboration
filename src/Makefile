@@ -4,15 +4,15 @@
 # yingdi
 #EXEC = $(HOME)/qdyn_svn/trunk/src/qdyn 
 # pablo
-#EXEC = $(HOME)/bin/qdyn 
- EXEC = ./qdyn
+EXEC = $(HOME)/bin/qdyn 
+# EXEC = ./qdyn
 
 # 2. Comment/uncomment/add/modify the lines corresponding to your compiler:
 
 # GNU, serial
 #Only MPI no openMP
 F90 = mpif90
-OPT = -O3 -Wall
+#OPT = -O3 -Wall
 # For parallel runs with MPI+OpenMP:
 #F90 = mpif90
 #OPT = -O3 -Wall -fopenmp 
@@ -23,6 +23,7 @@ OPT = -O3 -Wall
 # For parallel runs with OpenMP:
 #OPT = -O3 -ip -ipo -parallel -openmp -par-threshold:50
 #-no-inline-factor
+OPT = -O3 -openmp
 #OPT = -O3
 # OPT = -O0 -warn all -C
 #OPT = -O0 -warn all -parallel -par-report3  -C
