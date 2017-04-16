@@ -4,7 +4,7 @@ clear;
 %------------------------------
 rand(1,floor(sum(100*clock)));
 %------------------------------
-
+addpath ~/qdyn_developer/src
 
 year = 3600*24*365;
 p = qdyn('set');

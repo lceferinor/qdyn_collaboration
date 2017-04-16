@@ -1,5 +1,7 @@
 % A 2D run with uniform slip and initial velocity slightly above steady state. In Matlab:
 
+addpath ~/qdyn_developer/src
+
 % get default parameters:
 p = qdyn('set');  
 
