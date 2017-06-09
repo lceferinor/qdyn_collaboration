@@ -5,7 +5,7 @@
 #EXEC = $(HOME)/qdyn_svn/trunk/src/qdyn 
 # pablo
 #EXEC = $(HOME)/bin/qdyn 
- EXEC = ./qdyn
+EXEC = ./qdyn
 
 # 2. Comment/uncomment/add/modify the lines corresponding to your compiler:
 

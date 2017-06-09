@@ -75,10 +75,11 @@ p.NSTOP=0;
 
 [p,ot1,ox1]  = qdyn('run',p);
 %semilogy(ot1.t/year,ot1.v)
-semilogy(ot1.t/year,ot1.vc)
+fig = figure;
+semilogy(ot1.t/year,ot1.vc);
 xlabel('Time (years)');
 ylabel('Vmax');
-% 
+
 %   p.TMAX = ts*year;  
 %   p.NTOUT=10;
 % 
@@ -88,6 +89,7 @@ ylabel('Vmax');
 %   %p.TH_0=  (ox1.th(:,end)+ox1.th(end:-1:1,end))/2;
 %   [p,ot1,ox1]=qdyn('run',p);
 
+saveas(fig, 'vel_plot.png','png');
 save(filename)  
 
 
