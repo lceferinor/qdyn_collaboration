@@ -17,16 +17,16 @@ year = 3600*24*365; % Should we put a longer timeframe? Would this timeline
                     % PG: this is only a unit.
 p = qdyn('set');
 
-p.TMAX = 100000*year % Duration of the whole simulation.
+p.TMAX = 1000*year; % Duration of the whole simulation.
 
 p.DYN_TH_ON = 0.1; % Slip velocity at the nucletion phase starts.
 p.DYN_TH_OFF = 0.001;
 
 co = 4e6; % Cohesion imposed in the first kilometers depth.
-co_limit = 2e3;
+
 p.MU = 32.5e9; % Shear Modulus.
-p.LAM = p.MU
-p.VS = 3000.0
+p.LAM = p.MU;
+p.VS = 3000.0;
 p.MU_SS = 0.6; % Reference friction coefficient.
 
 p.MESHDIM=2;   % I think we can preserve the mesh size for now (Luis).
@@ -41,7 +41,7 @@ p.SIGMA=100.0e6; % 1) Should we change this? Would this be reasonable for the
                % PG: The normal stress (P.SIGMA) should change with depth and 
                %  constant value. Here 100 Mpa, but this could be changed.
 %p.V_SS=1e-9;
-p.V_SS=0.020/year % 20mm/year %1.97e-9;
+p.V_SS=0.020/year; % 20mm/year %1.97e-9;
                 % PG : Using Villegas et al. (2016) GPS survey, Figure 3.
                 % This is the relative velocity (m/s) of Nazca and South 
                 % America plates extracted from Kendrick et al (2003) Azimut 82NE.
@@ -154,28 +154,47 @@ ba0=1.5;  %b/a at seismogenic zone
 bam=0.6;  %b/a at shallow/deeper part
 ZW = p.Z; 
 %% PG: Addapt the below parameters for Lima Fault has three transitions at depth. 
+% LC: p.Z goes from 0 to -p.ZCorner, so the index convention has changed
 % Finding layers:
-dd=10e3;    %depth of L sigma change
-idd=max(find(ZW+dd<=0));
-d1=2e3;     %upperbound of seismogenic zone (depth in m)
-id1=max(find(ZW+d1<=0));
-d2=5e3;     %limit of constant b/a
-id2=max(find(ZW+d2<=0));
-d3=12e3;    %lowerbound of seismogenic zone (depth in m)
-id3=max(find(ZW+d3<=0));
-d4=15e3;    %limit of constant b/a
-id4=max(find(ZW+d4<=0));
-ico_limit=max(find(ZW+co_limit<=0));
+%dd=10e3;    %depth of L sigma change
+dd = abs(0.50*p.Z_CORNER); % Ratio from Ventura (LC) 
+idd=max(find(ZW+dd>=0)); %LC: Change < by >
+%d1=2e3;     %upperbound of seismogenic zone (depth in m)
+d1 = abs(0.10*p.Z_CORNER); % Ratio from Ventura (LC) 
+id1=max(find(ZW+d1>=0));
+%d2=5e3;     %limit of constant b/a
+d2 = abs(0.25*p.Z_CORNER); % Ratio from Ventura (LC) 
+id2=max(find(ZW+d2>=0));
+%d3=12e3;    %lowerbound of seismogenic zone (depth in m)
+d3 = abs(0.60*p.Z_CORNER); % Ratio from Ventura (LC) 
+id3=max(find(ZW+d3>=0));
+%d4=15e3;    %limit of constant b/a
+d4 = abs(0.75*p.Z_CORNER); % Ratio from Ventura (LC) 
+id4=max(find(ZW+d4>=0));
 
-tmp_B(1:id4)      = tmp_A(1:id4).*bam;
-tmp_B(id4+1:id3)  = tmp_A(id4+1:id3).*linspace(bam,ba0,numel(id4+1:id3));   %increasing a/b below seismogenic zone
-tmp_B(id3+1:id2)  = tmp_A(id3+1:id2).*ba0;   %a/b < 1 in seismogenic zone
-tmp_B(id2+1:id1)  = tmp_A(id2+1:id1).*linspace(ba0,bam,numel(id2+1:id1));
-tmp_B(id1+1:p.NW) = tmp_A(id1+1:p.NW).*bam;  %a/b >1 at shallow part 
+%co_limit = 2e3;
+co_limit = abs(0.1*p.Z_CORNER);
+ico_limit=max(find(ZW+co_limit>=0));
 
-tmp_SIGMA(1:idd)      = sigma0;
-tmp_SIGMA(idd+1:p.NW) = linspace(sigma0,1e6,numel(idd+1:p.NW));
-tmp_CO(1:ico_limit)      = 0;
+%tmp_B(1:id4)      = tmp_A(1:id4).*bam;
+%tmp_B(id4+1:id3)  = tmp_A(id4+1:id3).*linspace(bam,ba0,numel(id4+1:id3));   %increasing a/b below seismogenic zone
+%tmp_B(id3+1:id2)  = tmp_A(id3+1:id2).*ba0;   %a/b < 1 in seismogenic zone
+%tmp_B(id2+1:id1)  = tmp_A(id2+1:id1).*linspace(ba0,bam,numel(id2+1:id1));
+%tmp_B(id1+1:p.NW) = tmp_A(id1+1:p.NW).*bam;  %a/b >1 at shallow part 
+tmp_B(1:id1) = tmp_A(1:1:id1).*bam;
+tmp_B(id1+1:id2)  = tmp_A(id1+1:id2).*linspace(bam,ba0,numel(id1+1:id2));   %increasing a/b below seismogenic zone
+tmp_B(id2+1:id3)  = tmp_A(id2+1:id3).*ba0;   %a/b < 1 in seismogenic zone
+tmp_B(id3+1:id4)  = tmp_A(id3+1:id4).*linspace(ba0,bam,numel(id3+1:id4));
+tmp_B(id4+1:p.NW) = tmp_A(id4+1:p.NW).*bam;  %a/b >1 at shallow part 
+
+
+
+%tmp_SIGMA(1:idd)      = sigma0;
+%tmp_SIGMA(idd+1:p.NW) = linspace(sigma0,1e6,numel(idd+1:p.NW));
+tmp_SIGMA(idd+1:end) = sigma0;
+tmp_SIGMA(1:idd) = linspace(1e6,sigma0,numel(idd+1:p.NW));
+
+tmp_CO(ico_limit+1:end)      = 0; % (Are we going to use cohesion??)
 
 % Replicate along the strike direction
 for i=1:p.NW
@@ -190,11 +209,28 @@ for i=1:p.NW
     p.V_0((i-1)*p.NX+1:i*p.NX) = tmp_V_0(i);
     p.TH_0((i-1)*p.NX+1:i*p.NX) = tmp_TH_0(i);
     
+    p.CO((i-1)*p.NX+1:i*p.NX)    = tmp_CO(i);
+    
     % I am not sure if we need DW per each element (Luis)
-    p.DW((i-1)*p.NX+1:i*p.NX) = tmp_DW(i);
-    p.DIP_W((i-1)*p.NX+1:i*p.NX) = tmp_DIP_W(i); 
+    %p.DW((i-1)*p.NX+1:i*p.NX) = tmp_DW(i);
+    %p.DIP_W((i-1)*p.NX+1:i*p.NX) = tmp_DIP_W(i); 
+    
 end
 
+
+% Plot B/A ratio
+figure
+scatter3(p.X,p.Y,p.Z,3,p.B./p.A)
+az = 0;
+el = 90;
+view(az, el);
+
+
+figure
+scatter(p.B(1:p.NX:p.N)./p.A(1:p.NX:p.N),p.Z(1:p.NX:p.N));
+
+
+%% Asperity distribution
 % Lima fault potentially 6 asperities (2007,1974,1940,1966,1970,1996)
 % PG: 1970 Earhtquake is not subduction event. 1996 is too far away from Lima and
 % to save some computational time, we may need to obmit this event as well. In this way
