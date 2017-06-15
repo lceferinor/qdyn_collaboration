@@ -1,16 +1,18 @@
 clear;
 
 
+scratch = getenv('SCRATCH');
+addpath(strcat(scratch,'/qdyn_collaboration/src'));
+
+
 %------------------------------
 rand(1,floor(sum(100*clock)));
 %------------------------------
 
 year = 3600*24*365;
 p = qdyn('set');
-
 p.MESHDIM=2;
 p.THETA_LAW=2;
-
 p.SIGMA=0.5e6;
 p.V_SS=1e-9;
 
@@ -72,7 +74,7 @@ p.NTOUT=10;
 p.NXOUT=1;
 p.NSTOP=0;
 % For MPI, parallel run
-p.NPROCS = 4;
+p.NPROCS = 2;
 [p,ot1,ox1]  = qdyn('run',p);
 semilogy(ot1.t/year,ot1.vc) % slip velocity plot for the p.IC point!.
 xlabel('Time (years)');
