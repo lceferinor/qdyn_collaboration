@@ -3,7 +3,7 @@
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling
 #################
 #set a job name
-#SBATCH --job-name=test3d_fft_mpi
+#SBATCH --job-name=test3dfft_mpi
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
 #SBATCH --output=test_3dfft_mpi.%j.out

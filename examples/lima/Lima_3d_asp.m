@@ -6,6 +6,7 @@
 clear;
 clc;
 addpath ~/qdyn_developer/src 
+%addpath ~/qdyn-read-only/src 
 
 %------------------------------
 rand(1,floor(sum(100*clock)));
@@ -91,8 +92,11 @@ WH= 200e3; % Along-slip horizontal length of the fault (in meters) extracted
            % PG: At this depth the code imposes creeping zone.
 p.W=WH/cos(15/180*pi); %Along-dip distance, 
            % Dip angle 15 degress according to Villegas et al.(2016). Table 1.
-p.NX=400;%100;
-p.NW=100;%30; % Related to question on p.W. Is this related to the contact 
+%p.NX=400;%100;
+p.NX=50;%100;
+p.NW=50;%100;
+
+%p.NW=100;%30; % Related to question on p.W. Is this related to the contact 
          % surface? (Luis)
          % PG : This is the number of elements along-dip fault. 
          % This value is too small. To get stable running the grid size (p.W/p.NW)=2km.
@@ -221,9 +225,9 @@ end
 % Plot B/A ratio
 figure
 scatter3(p.X,p.Y,p.Z,3,p.B./p.A)
-az = 0;
-el = 90;
-view(az, el);
+%az = 0;
+%el = 90;
+%view(az, el);
 
 
 figure

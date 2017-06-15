@@ -76,9 +76,10 @@ p.NSTOP=0;
 % For MPI, parallel run
 p.NPROCS = 2;
 [p,ot1,ox1]  = qdyn('run',p);
-semilogy(ot1.t/year,ot1.vc) % slip velocity plot for the p.IC point!.
+fig=semilogy(ot1.t/year,ot1.vc) % slip velocity plot for the p.IC point!.
 xlabel('Time (years)');
 ylabel('Vmax');
+saveas(fig,"velocity.bmp");
 % 
 %   p.TMAX = ts*year;  
 %   p.NTOUT=10;

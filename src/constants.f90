@@ -10,7 +10,7 @@ module constants
   logical, parameter :: OCTAVE_OUTPUT = .false.
 
  ! set the name of the kernel*.tab file, including its full path
-  character(*), parameter :: KERNEL_FILE = "/home/luis/qdyn_developer/src/kernel_I_32768.tab"
+  character(*), parameter :: KERNEL_FILE = "/scratch/users/ceferino/collaboration/src/kernel_I_32768.tab"
 
 ! set the type of faulting:
 !   1 : strike-slip (right-lateral)
