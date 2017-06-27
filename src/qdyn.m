@@ -189,7 +189,6 @@
 % AUTHOR	Jean-Paul Ampuero	ampuero@gps.caltech.edu
 % MODIFIED by Yingdi LUO        luoyd@gps.caltech.edu
 % Last Mod 11/11/2014
-
 function [pars,ot,ox] = qdyn(mode,varargin)
 
 NPROCS = 1; % Default serial, no-MPI.
@@ -224,6 +223,7 @@ V_TH= 1e-5; % threshold velocity for seismic events;
 %-- numerical settings
 N=1024/2; 	% number of grid cells
 NX=100/2;
+
 NW=10;
 DW=1e3;
 DIP_W=30.0;
@@ -236,7 +236,9 @@ NSTOP = 0;	% stop at (0) tmax, (1) end of localization or (2) max slip rate
 DTTRY = 1e2;   % first trial timestep
 DTMAX = 0;	% maximum timestep (0=unrestricted)
 ACC = 1e-7;     % solver accuracy
-NXOUT = 8;	% space stride (cells) for snapshot outputs
+
+NXOUT = 8;	% space along X stride (cells) for snapshot outputs
+NWOUT = 1; % space along W stride (cells) for snapshot outputs
 NXOUT_DYN = 1;	% space stride (cells) for dynamic snapshot outputs
 NTOUT = 100; 	% time stride (iterations) for snapshot outputs
 OX_SEQ = 0; 	% = 1 ; enable sequential ox output , from fort.1000 ...
@@ -517,7 +519,7 @@ switch mode
         copyfile(fullfile(pathstr,'qdyn.h') ,[NAME '.h']); 
       end
      % output
-      [ot,ox]= read_qdyn_out_mpi(NAME);
+      [ot,ox]= read_qdyn_out_mpi(NAME,NX,NW,NXOUT,NWOUT);
       % ot=0;
       % ox=0;
     else
@@ -528,7 +530,7 @@ switch mode
         copyfile(fullfile(pathstr,'qdyn.h') ,[NAME '.h']); 
       end
      % output
-      [ot,ox]= read_qdyn_out(NAME);
+      [ot,ox]= read_qdyn_out(NAME,NX,NW,NXOUT,NWOUT);
     end
 
   otherwise,
@@ -632,7 +634,7 @@ end
 
 
 % read outputs from qdyn.f
-function [ot,ox] = read_qdyn_out_mpi(name)
+function [ot,ox] = read_qdyn_out_mpi(name,NX,NW,NXOUT,NWOUT)
 
 if exist('name','var') && length(name)
   namet = [name '.ot'];
@@ -646,30 +648,82 @@ end
   [ot.t,ot.vc, ot.thc, ot.omc, ot.tauc, ot.dc ] = ...
     textread(namet,'','headerlines',4);
   
-  % snapshots
+  % snapshots  
+  [nol nol] = system(['wc -l ' namex]);
+  N_lines = str2double(strtok(nol))-1; % Number of time stesps
   fid=fopen(namex);
   NSX=fscanf(fid,'# nx=%u');
+  NST = N_lines/(NSX+1);
+  nx=NSX/NW;
+  nw=floor(NW/NWOUT);
+  n=nx*nw; 
+  ind_w = [];
+  for i=1:nw
+    ind_w = [ind_w,(NWOUT*nx*(i-1) + (1:nx))];
+  end
+  % Reading large file
+  formatString_h = ['# ', repmat('%s ', 1, 14)];
+  formatString_h (end) = [];
+  formatString_d = repmat('%f ', 1, 11);
+  formatString_d (end) = [];
+  
+  % Initializing values
+  ox.x = zeros(n,1);
+  ox.y = zeros(n,1);
+  ox.z = zeros(n,1);
+  ox.t = zeros(1,NST);
+  ox.v = zeros(n,NST);
+  ox.th= zeros(n,NST);
+  ox.vd= zeros(n,NST);
+  ox.dtau = zeros(n,NST);
+  ox.dtaud = zeros(n,NST);
+  ox.d = zeros(n,NST);
+  ox.sigma = zeros(n,NST);
+  
+  for j=1:NST
+    head = textscan(fid, formatString_h, 1);% reading headers
+    data = textscan(fid, formatString_d, NSX);
+    %allData = [allData; [data{:}]];
+    cosa=reshape([data{:}],NSX,1,11);
+    ox.x = cosa(ind_w,1,1);
+    ox.x = cosa(ind_w,1,2);
+    ox.x = cosa(ind_w,1,3);
+    ox.t(1,j) = cosa(1,1,4);
+    ox.v(:,j) = cosa(ind_w,1,5);
+    ox.th(:,j) = cosa(ind_w,1,6);
+    ox.vd(:,j) = cosa(ind_w,1,7);
+    ox.dtau(:,j) = cosa(ind_w,1,8);
+    ox.dtaud(:,j) = cosa(ind_w,1,9);
+    ox.d(:,j) = cosa(ind_w,1,10);
+    ox.sigma(:,j) = cosa(ind_w,1,11);
+  end
   fclose(fid);
-  cosa = textread(namex,'','commentstyle','shell');
-  ncosa = size(cosa);
-  NST=ncosa(1)/NSX;
-  cosa=reshape(cosa,NSX,NST,ncosa(2));
-  ox.x = cosa(:,1,1);
-  ox.y = cosa(:,1,2);
-  ox.z = cosa(:,1,3);
-
-  ox.t = cosa(1,:,4)';
-  ox.v = cosa(:,:,5);
-  ox.th= cosa(:,:,6);
-  ox.vd= cosa(:,:,7);
-  ox.dtau = cosa(:,:,8);
-  ox.dtaud = cosa(:,:,9);
-  ox.d = cosa(:,:,10);
-  ox.sigma = cosa(:,:,11);
+  
+  
+  % snapshots
+%   fid=fopen(namex);
+%   NSX=fscanf(fid,'# nx=%u');
+%   fclose(fid);
+%   cosa = textread(namex,'','commentstyle','shell');
+%   ncosa = size(cosa);
+%   NST=ncosa(1)/NSX;
+%   cosa=reshape(cosa,NSX,NST,ncosa(2));
+%   ox.x = cosa(:,1,1);
+%   ox.y = cosa(:,1,2);
+%   ox.z = cosa(:,1,3);
+% 
+%   ox.t = cosa(1,:,4)';
+%   ox.v = cosa(:,:,5);
+%   ox.th= cosa(:,:,6);
+%   ox.vd= cosa(:,:,7);
+%   ox.dtau = cosa(:,:,8);
+%   ox.dtaud = cosa(:,:,9);
+%   ox.d = cosa(:,:,10);
+%   ox.sigma = cosa(:,:,11);
 
 %-----------
 % read outputs from qdyn.f
-function [ot,ox] = read_qdyn_out(name)
+function [ot,ox] = read_qdyn_out(name,NX,NW,NXOUT,NWOUT)
 
 if exist('name','var') && length(name)
   namet = [name '.ot'];
@@ -682,28 +736,59 @@ end
 if uimatlab
   % time series
   [ot.t, ot.locl, ot.cl, ot.p, ot.pdot, ...
-   ot.vc, ot.thc, ot.omc, ot.tauc, ot.dc, ...
-   ot.xm, ot.v, ot.th, ot.om, ot.tau, ot.d, ot.sigma ] = ...
-    textread(namet,'','headerlines',6);
-  
+  ot.vc, ot.thc, ot.omc, ot.tauc, ot.dc, ...
+  ot.xm, ot.v, ot.th, ot.om, ot.tau, ot.d, ot.sigma ] = ...
+  textread(namet,'','headerlines',6);
+
   % snapshots
+  [nol nol] = system(['wc -l ' namex]);
+  N_lines = str2double(strtok(nol))-1; % Number of time stesps
   fid=fopen(namex);
   NSX=fscanf(fid,'# nx=%u');
-  fclose(fid);
-  cosa = textread(namex,'','commentstyle','shell');
-  ncosa = size(cosa);
-  NST=ncosa(1)/NSX;
-  cosa=reshape(cosa,NSX,NST,ncosa(2));
-  ox.x = cosa(:,1,1);
-  ox.t = cosa(1,:,2)';
-  ox.v = cosa(:,:,3);
-  ox.th= cosa(:,:,4);
-  ox.vd= cosa(:,:,5);
-  ox.dtau = cosa(:,:,6);
-  ox.dtaud = cosa(:,:,7);
-  ox.d = cosa(:,:,8);
-  ox.sigma = cosa(:,:,9);
+  NST = N_lines/(NSX+1);
+  
+  nx=NSX/NW;
+  nw=floor(NW/NWOUT);
+  n=nx*nw; 
+  ind_w = [];
+  for i=1:nw
+    ind_w = [ind_w,(NWOUT*nx*(i-1) + (1:nx))];
+  end
+  % Reading large file
+  formatString_h = ['# ', repmat('%s ', 1, 10)];
+  formatString_h (end) = [];
+  formatString_d = repmat('%f ', 1, 9);
+  formatString_d (end) = [];
 
+
+  % Initializing values
+  ox.x = zeros(n,1);
+  ox.t = zeros(1,NST);
+  ox.v = zeros(n,NST);
+  ox.th= zeros(n,NST);
+  ox.vd= zeros(n,NST);
+  ox.dtau = zeros(n,NST);
+  ox.dtaud = zeros(n,NST);
+  ox.d = zeros(n,NST);
+  ox.sigma = zeros(n,NST);
+
+  for j=1:NST
+    head = textscan(fid, formatString_h, 1);% reading headers
+    data = textscan(fid, formatString_d, NSX);
+    %allData = [allData; [data{:}]];
+    cosa=reshape([data{:}],NSX,1,9);
+    ox.x = cosa(ind_w,1,1);
+    ox.t(1,j) = cosa(1,1,2);
+    ox.v(:,j) = cosa(ind_w,1,3);
+    ox.th(:,j) = cosa(ind_w,1,4);
+    ox.vd(:,j) = cosa(ind_w,1,5);
+    ox.dtau(:,j) = cosa(ind_w,1,6);
+    ox.dtaud(:,j) = cosa(ind_w,1,7);
+    ox.d(:,j) = cosa(ind_w,1,8);
+    ox.sigma(:,j) = cosa(ind_w,1,9);
+  end
+  fclose(fid);
+  
 else 
   [ot,ox] = read_qdyn_out_Octave(namet,namex)
 end
