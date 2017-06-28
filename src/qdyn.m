@@ -686,8 +686,8 @@ end
     %allData = [allData; [data{:}]];
     cosa=reshape([data{:}],NSX,1,11);
     ox.x = cosa(ind_w,1,1);
-    ox.x = cosa(ind_w,1,2);
-    ox.x = cosa(ind_w,1,3);
+    ox.y = cosa(ind_w,1,2);
+    ox.z = cosa(ind_w,1,3);
     ox.t(1,j) = cosa(1,1,4);
     ox.v(:,j) = cosa(ind_w,1,5);
     ox.th(:,j) = cosa(ind_w,1,6);
