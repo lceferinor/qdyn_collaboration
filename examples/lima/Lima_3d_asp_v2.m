@@ -6,6 +6,7 @@
 clear;
 clc;
 addpath ~/qdyn_developer/src 
+%addpath ~/qdyn-read-only/src 
 
 %------------------------------
 rand(1,floor(sum(100*clock)));
@@ -33,6 +34,7 @@ p.A=0.01; % From Tohoku. (p.B defined as function of p.B and depth later)
 p.B=0.006; % From Tohoku. (Referential values, it will be redefined later)
 %p.DC=0.8; % From Tohoku, Tohoku is 0.8
 p.DC=1.6; % Change latter
+
 p.SIGMA_CPL=1; % PG: This is relating with coupling of the normal stress 
                 % with seismic waves.
 p.RNS_LAW=0; %LC: 06/22           
@@ -61,7 +63,7 @@ p.A(1:p.NW) = p.A; % Along Dip
 p.B(1:p.NW) = p.B; % Along Dip
 p.SIGMA(1:p.NW) = p.SIGMA; % Along Dip
 p.DC(1:p.NW) = p.DC; % Along Dip
-p.Y = linspace(0,p.W,p.NW); % Along Dip
+p.Y = linspace(0,WH,p.NW); % Along Dip
 p.Z = linspace(p.Z_CORNER,0,p.NW); % Along Dip
 
 
@@ -142,7 +144,7 @@ end
 % we can use the exact dimension from Villegas fault p.L = 620Km. 
 n_asperities = 5;
 asp_center_x = [0.128 0.340 0.431 0.622 0.818]*p.L;
-asp_center_zy = [0.735 0.296 0.875 0.315 0.253]*p.W;
+asp_center_zy = [0.735 0.296 0.875 0.315 0.253]*p.W; % From top down
 asp_elip_a = [0.214 0.335 0.294 0.243 0.130]/2*p.L;% Along strike
 asp_elip_b = [0.798 0.667 0.649 0.699 0.261]/2*p.W;% Along dip
 
@@ -153,8 +155,8 @@ l_asp1=40.0*1e3;          %asperity size upper limit in m
 ba_asp=1.5;       %b/a of asperity
 dc_asp=0.025;       % Taken from AECOM example (Luis)
 dc_asp=0.025*32; % So that it runs
-sigma_asp=88.2e6*2;        %sigma(asp)
 
+sigma_asp=88.2e6*2;        %sigma(asp)
 
 twm=20000;         %warmup time in years (what is this? (Luis))
 %twm=500;         
@@ -168,7 +170,7 @@ disp(['Asperities scattering: Customized ']);
 
 
 for i = 1:n_asperities
-    tmp_dist_asp = (asp_center_x(i) - p.X).^2 + (asp_center_zy(i) - sqrt(p.Y.^2+p.Z.^2)).^2;
+    tmp_dist_asp = (asp_center_x(i) - p.X).^2 + (asp_center_zy(i) - sqrt((WH - p.Y).^2 + p.Z.^2)).^2;
     [M,I] = min(tmp_dist_asp);
     i_asp(I) = 1;
  end
@@ -190,7 +192,7 @@ asp_count=0;
 for i=1:p.N
     if i_asp(i) == 1
         tmp_sq_dis_asp = (asp_center_x - p.X(i)).^2 + ...
-            (asp_center_zy - (p.Y(i)^2+p.Z(i)^2)).^2;
+            (asp_center_zy - sqrt((WH-p.Y(i))^2+p.Z(i)^2)).^2;
         [M,I_asp] = min(tmp_sq_dis_asp);
 
         p.IASP(i) = 1;
@@ -240,6 +242,8 @@ end
 %el = 90;
 %view(az, el);
 
+
+
 %% Controlling parameters
 
 Vdyn=2*mean(p.A.*p.SIGMA./p.MU.*p.VS);
@@ -265,19 +269,23 @@ p.IC=ceil(p.N/2);
 p.OX_DYN = 1;
 p.OX_SEQ = 0; %Make fort.19 survive
 
+
 p.TMAX=twm*year;
 p.NTOUT=100;
-p.NXOUT=1;
+p.NXOUT=4;
+p.NWOUT=4;
 p.NSTOP=0;
 p.DYN_FLAG=0;
 p.DYN_M=10.^19.5;
 p.DYN_SKIP = 1;
 
 [p,ot1,ox1]  = qdyn('run',p);
-semilogy(ot1.t/year,ot1.v)
+semilogy(ot1.t/year,ot1.v);
 xlabel('Time (years)');
 ylabel('Vmax');
 saveas(gcf,'velocity_Lima.png');
+
+
 % 
 %   p.TMAX = ts*year;  
 %   p.NTOUT=1;
