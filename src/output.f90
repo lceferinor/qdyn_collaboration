@@ -112,10 +112,16 @@ if (MPI_parallel) then
      if (MY_RANK==0) then
       pb%ot%unit = 18
       write(pb%ot%unit,'(a)')'# macroscopic values:'
-      write(pb%ot%unit,'(a)')'# 1=t'
+      write(pb%ot%unit,'(a)')'# 1=t,2=loc_size,3=crack_size,4=potcy,5=pot_rate'
       write(pb%ot%unit,'(a)')'# values at selected point:'
-      write(pb%ot%unit,'(a)')'# 2=V, 3=theta, 4=V*theta/dc, 5=tau, 6=slip'
-      close(pb%ot%unit)
+      write(pb%ot%unit,'(a)')'# 6=V, 7=theta, 8=V*theta/dc, 9=tau, 10=slip'
+      write(pb%ot%unit,'(a)')'# values at max(V) location:'
+      write(pb%ot%unit,'(a)')'# 11=x, 12=V, 13=theta, 14=omeg, 15=tau, 16=slip, 17=sigma'
+!      write(pb%ot%unit,'(a)')'# macroscopic values:'
+!      write(pb%ot%unit,'(a)')'# 1=t'
+!      write(pb%ot%unit,'(a)')'# values at selected point:'
+!      write(pb%ot%unit,'(a)')'# 2=V, 3=theta, 4=V*theta/dc, 5=tau, 6=slip'
+!      close(pb%ot%unit)
      endif
   endif
 ! In progress
@@ -224,11 +230,20 @@ if (MPI_parallel) then
       pb%ot%unit = 18
       open(pb%ot%unit,access='APPEND',status='old',iostat=ios)
       if (ios==0) then
-      !Writing in File output.
-      ot_fmt = '(e24.16,5e14.6)'
-      write(pb%ot%unit,ot_fmt) pb%time, pb%v(pb%ot%ic), pb%theta(pb%ot%ic), &
-      pb%v(pb%ot%ic)*pb%theta(pb%ot%ic)/pb%dc(pb%ot%ic), &
-      pb%tau(pb%ot%ic), pb%slip(pb%ot%ic)
+        !Writing in File output.
+        ot_fmt = '(e24.16,16e14.6)'
+        write(pb%ot%unit,ot_fmt) pb%time, pb%ot%llocnew*pb%mesh%dx,  &
+           pb%ot%lcnew*pb%mesh%dx, pb%pot, pb%pot_rate,    &
+           pb%v(pb%ot%ic), pb%theta(pb%ot%ic),  &
+           pb%v(pb%ot%ic)*pb%theta(pb%ot%ic)/pb%dc(pb%ot%ic), &
+           pb%tau(pb%ot%ic), pb%slip(pb%ot%ic),    &
+           !   for ivmax
+           pb%mesh%x(pb%ot%ivmax), pb%v(pb%ot%ivmax), pb%theta(pb%ot%ivmax),   &
+           pb%v(pb%ot%ivmax)*pb%theta(pb%ot%ivmax)/pb%dc(pb%ot%ivmax),    &
+           pb%tau(pb%ot%ivmax), pb%slip(pb%ot%ivmax), pb%sigma(pb%ot%ivmax)
+        !write(pb%ot%unit,ot_fmt) pb%time, pb%v(pb%ot%ic), pb%theta(pb%ot%ic), &
+        !pb%v(pb%ot%ic)*pb%theta(pb%ot%ic)/pb%dc(pb%ot%ic), &
+        !pb%tau(pb%ot%ic), pb%slip(pb%ot%ic)
       else 
        stop 'Error opening a fort.18 file'
       endif
