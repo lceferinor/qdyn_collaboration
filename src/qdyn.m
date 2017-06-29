@@ -644,9 +644,16 @@ else
   namex = 'fort.19';
 end
 
+
   % time series
-  [ot.t,ot.vc, ot.thc, ot.omc, ot.tauc, ot.dc ] = ...
-    textread(namet,'','headerlines',4);
+  [ot.t, ot.locl, ot.cl, ot.p, ot.pdot, ...
+  ot.vc, ot.thc, ot.omc, ot.tauc, ot.dc, ...
+  ot.xm, ot.v, ot.th, ot.om, ot.tau, ot.d, ot.sigma ] = ...
+  textread(namet,'','headerlines',6);
+
+  % time series
+  %[ot.t,ot.vc, ot.thc, ot.omc, ot.tauc, ot.dc ] = ...
+  %  textread(namet,'','headerlines',4);
   
   % snapshots  
   [nol nol] = system(['wc -l ' namex]);
@@ -792,6 +799,8 @@ if uimatlab
 else 
   [ot,ox] = read_qdyn_out_Octave(namet,namex)
 end
+
+
 
 %---
 % adapted from http://www.mathworks.com/matlabcentral/fileexchange/23868-is-this-matlab-or-octave-
