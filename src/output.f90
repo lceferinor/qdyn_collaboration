@@ -328,7 +328,7 @@ if (MPI_parallel) then
         write(pb%ox%unit,'(2a,2i8,e14.6)') '# x y z t v theta',' V_dot/V dtau tau_dot slip sigma ',&
                                           pb%it,pb%ot%ivmaxglob,pb%time
         do ixout=1,pb%mesh%nnglob,pb%ox%nxout
-          write(pb%ox%unit,'(3e15.7,e24.16,7e15.7)') pb%mesh%xglob(ixout),pb%mesh%yglob(ixout),&
+          write(pb%ox%unit,'(3e15.7,e24.16,7E15.7e3)') pb%mesh%xglob(ixout),pb%mesh%yglob(ixout),&
           pb%mesh%zglob(ixout),pb%time,pb%v_glob(ixout),pb%theta_glob(ixout),&
           pb%dv_dt_glob(ixout)/pb%v_glob(ixout),&
           pb%tau_glob(ixout),pb%dtau_dt_glob(ixout),pb%slip_glob(ixout), pb%sigma_glob(ixout)
@@ -339,7 +339,7 @@ if (MPI_parallel) then
       write(pb%ox%unit,'(3i10,e24.14)') pb%it,pb%ot%ivmaxglob,pb%ox%countglob,pb%time
       write(pb%ox%unit,'(2a)') '#  x  y  z  t  v  theta','  V./V  dtau  tau_dot  slip '
       do ixout=1,pb%mesh%nnglob,pb%ox%nxout
-        write(pb%ox%unit,'(3e15.7,e24.14,7e15.7)')       &
+        write(pb%ox%unit,'(3e15.7,e24.14,7E15.7e3)')       &
           pb%mesh%xglob(ixout),pb%mesh%yglob(ixout),pb%mesh%zglob(ixout),pb%time,     &
           pb%v_glob(ixout),pb%theta_glob(ixout),pb%dv_dt_glob(ixout)/pb%v_glob(ixout),pb%tau_glob(ixout),   &
           pb%dtau_dt_glob(ixout),pb%slip_glob(ixout), pb%sigma_glob(ixout)
@@ -356,7 +356,7 @@ if (MPI_parallel) then
       write(pb%ox%unit,'(3i10,e24.14)') pb%it,pb%ot%ivmax,pb%ox%count,pb%time
       write(pb%ox%unit,'(2a)') '#  x  y  z  t  v  theta','  V./V  dtau  tau_dot  slip '
       do ixout=1,pb%mesh%nn,pb%ox%nxout
-        write(pb%ox%unit,'(3e15.7,e24.14,7e15.7)')       &
+        write(pb%ox%unit,'(3e15.7,e24.14,7E15.7e3)')       &
           pb%mesh%x(ixout),pb%mesh%y(ixout),pb%mesh%z(ixout),pb%time,     &
           pb%v(ixout),pb%theta(ixout),pb%dv_dt(ixout)/pb%v(ixout),pb%tau(ixout),   &
           pb%dtau_dt(ixout),pb%slip(ixout), pb%sigma(ixout)
